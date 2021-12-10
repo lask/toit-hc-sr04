@@ -1,0 +1,5 @@
+dependencies:
+  hs_sr03:
+    path: ..
+  hs_sr04:
+    path: ..

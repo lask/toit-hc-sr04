@@ -1,0 +1,6 @@
+prefixes:
+  hs_sr03: ..
+  hs_sr04: ..
+packages:
+  ..:
+    path: ..
