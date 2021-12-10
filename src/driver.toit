@@ -39,7 +39,7 @@ class Driver:
       results.add read_ / CM_CONVERSION_FACTOR_
 
     // Max range of the device is 400.
-    results.filter --in_place: it > 400
+    results.filter --in_place: it <= 400
     if results.is_empty: return null
 
     results.sort --in_place
