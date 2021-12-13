@@ -45,7 +45,7 @@ class Driver:
   run_:
     while true:
       window_[head_] = read_
-      head_ = head_ + 1 % WINDOW_SIZE_
+      head_ = (head_ + 1) % WINDOW_SIZE_
       yield
 
   /**
