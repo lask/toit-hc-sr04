@@ -6,5 +6,7 @@ main:
       --echo=gpio.Pin.in 16
       --trigger=gpio.Pin.out 17
 
+  driver.start
   while true:
     print "Distance: $driver.distance_cm"
+    sleep --ms=2_000
