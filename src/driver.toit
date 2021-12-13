@@ -7,10 +7,10 @@ class Driver:
   echo_/gpio.Pin
   trigger_/gpio.Pin
 
-  CM_CONVERSION_FACTOR_ ::= 58
-  INCH_CONVERSION_FACTOR_ ::= 148
+  CM_CONVERSION_FACTOR ::= 58
+  INCH_CONVERSION_FACTOR ::= 148
 
-  last_reading_/Time := Time.now - (Duration --ms=60)
+  last_reading_/int := Time.monotonic_us
 
   static WINDOW_SIZE_ ::= 10
 
@@ -52,6 +52,10 @@ class Driver:
   A copy of the current window of measurements.
 
   The oldest measurement is on the smallest index.
+
+  # Advanced
+  No conversion has been applied to the measurements. Divide by
+    $CM_CONVERSION_FACTOR or $INCH_CONVERSION_FACTOR to get a range.
   */
   window -> List:
     result := List 10
@@ -74,18 +78,20 @@ class Driver:
   distance_cm -> int?:
     if not runner_: throw "read before start"
     // Max range of the device is 400.
-    distances := window_.filter: it <= 400
+    max_range_cm := 400 * CM_CONVERSION_FACTOR
+    distances := window_.filter: it <= max_range_cm
+
     if distances.is_empty: return null
 
     distances.sort --in_place
 
     to := min 5 distances.size
-    return (distances[0..to].reduce: | acc res | acc + res) / distances.size
+    return ((distances[0..to].reduce: | acc res | acc + res) / distances.size) / CM_CONVERSION_FACTOR
 
   read_ -> int:
     // There should be 60 ms between reads.
-    sleepy_time := max 0 60 - last_reading_.to_now.in_ms
-    if sleepy_time > 0: sleep --ms=sleepy_time
+    sleepy_time := max 0 60_000 - (Time.monotonic_us - last_reading_)
+    if sleepy_time > 0: sleep --ms=sleepy_time / 1000
 
     trigger_.set 1
     // Wait for 10 micro seconds.
@@ -99,5 +105,5 @@ class Driver:
     while echo_.get == 1: null
 
     after := Time.monotonic_us
-    last_reading_ = Time.now
+    last_reading_ = Time.monotonic_us
     return after - before
