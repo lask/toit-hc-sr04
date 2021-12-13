@@ -12,6 +12,13 @@ class Driver:
 
   last_reading_/Time := Time.now - (Duration --ms=60)
 
+  static WINDOW_SIZE_ ::= 10
+
+  window_ := List WINDOW_SIZE_: 401
+  head_ := 0
+
+  runner_ := null
+
   /**
   Constructs a HC-SR04 driver.
 
@@ -23,33 +30,62 @@ class Driver:
     trigger_ = trigger
 
   /**
-  Read the distance in cm.
+  Starts recording measurements.
+
+  Use $distance_cm to get the current distance or $window to get the current
+    window of measurements.
+  */
+  start:
+    if not runner_:
+      runner_ = task::
+        run_
+    add_finalizer this::
+      runner_.cancel
+
+  run_:
+    while true:
+      window_[head_] = read_
+      head_ = head_ + 1 % WINDOW_SIZE_
+      yield
+
+  /**
+  A copy of the current window of measurements.
+
+  The oldest measurement is on the smallest index.
+  */
+  window -> List:
+    result := List 10
+    result.replace 0 window_ head_
+    result.replace WINDOW_SIZE_ - head_ window_ 0 head_
+    return result
+
+  /**
+  Reads the distance in cm.
+
+  The $start method must be called before any call to this method.
 
   Returns null if all read values are invalid.
 
   # Advanced
-  The module is timing sensitive, and precise timings are not supported by Toit.
-    However, most readings are sane and can be used. Therefore, the driver
-    makes 10 measurements, discards all values that are invalid (distance beyond
-    range of sensor), and averages the smallest 5.
+  Considers the latest 10 measurements. Any measurement beyond 400 (the max
+    range) of the module is discarded. Take the average of the smallest 5
+    measurements and return as the result.
   */
   distance_cm -> int?:
-    results := []
-    10.repeat:
-      results.add read_ / CM_CONVERSION_FACTOR_
-
+    if not runner_: throw "read before start"
     // Max range of the device is 400.
-    results.filter --in_place: it <= 400
-    if results.is_empty: return null
+    distances := window_.filter: it <= 400
+    if distances.is_empty: return null
 
-    results.sort --in_place
+    distances.sort --in_place
 
-    to := min 5 results.size
-    return (results[0..to].reduce: | acc res | acc + res) / results.size
+    to := min 5 distances.size
+    return (distances[0..to].reduce: | acc res | acc + res) / distances.size
 
   read_ -> int:
     // There should be 60 ms between reads.
-    sleep --ms=(max 0 60 - last_reading_.to_now.in_ms)
+    sleepy_time := max 0 60 - last_reading_.to_now.in_ms
+    if sleepy_time > 0: sleep --ms=sleepy_time
 
     trigger_.set 1
     // Wait for 10 micro seconds.
