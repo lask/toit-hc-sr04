@@ -8,5 +8,5 @@ main:
 
   driver.start
   while true:
-    print "The distance is: driver.distance_cm"
+    print "The distance is: $driver.distance_cm cm"
     sleep --ms=2_000
