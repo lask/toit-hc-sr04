@@ -8,6 +8,7 @@ class Driver:
   trigger_/gpio.Pin
 
   CM_CONVERSION_FACTOR ::= 58
+  MAX_RANGE ::= 400 * 58 // Max range of the device is 400 cm.
   INCH_CONVERSION_FACTOR ::= 148
 
   last_reading_/int := Time.monotonic_us
@@ -77,9 +78,7 @@ class Driver:
   */
   distance_cm -> int?:
     if not runner_: throw "read before start"
-    // Max range of the device is 400.
-    max_range_cm := 400 * CM_CONVERSION_FACTOR
-    distances := window_.filter: it <= max_range_cm
+    distances := window_.filter: it <= MAX_RANGE
 
     if distances.is_empty: return null
 
@@ -99,11 +98,16 @@ class Driver:
     while Time.monotonic_us - now < 10: null
     trigger_.set 0
 
-    while echo_.get == 0: null
+    time_out1 := Time.monotonic_us + MAX_RANGE
+    while echo_.get == 0 and Time.monotonic_us <= time_out1: null
 
     before := Time.monotonic_us
-    while echo_.get == 1: null
 
+    if before > time_out1: return MAX_RANGE + 1 // invalid measurment
+
+    time_out2 := before + MAX_RANGE
+    while echo_.get == 1 and Time.monotonic_us <= time_out2: null
     after := Time.monotonic_us
-    last_reading_ = Time.monotonic_us
+
+    last_reading_ = after
     return after - before
