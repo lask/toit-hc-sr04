@@ -44,6 +44,21 @@ class Driver:
     
     return null
 
+  /**
+  Reads the distance in mm.
+
+  Returns null if the read value is invalid.
+
+  # Advanced
+  The HS-SR04 has an accuracy of 3mm.
+  */
+  distance_mm -> int?:
+    reading := read_
+    if reading: return (reading * 10) / CM_CONVERSION_FACTOR
+    
+    return null
+
+
   read_ -> int?:
     received_items := rmt.transfer_and_receive --rx=echo_ --tx=trigger_ rmt_items_ 8
     if received_items.size == 0 or (received_items.item_level 0) == 0: return null
