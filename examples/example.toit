@@ -1,6 +1,6 @@
 import gpio
 import rmt
-import hs_sr04
+import hc_sr04
 
 main:
   echo := rmt.Channel
@@ -10,7 +10,7 @@ main:
     gpio.Pin.out 18
     1
 
-  driver := hs_sr04.Driver --echo=echo --trigger=trigger
+  driver := hc_sr04.Driver --echo=echo --trigger=trigger
 
   while true:
     print "The distance is: $driver.distance_cm cm"
