@@ -41,7 +41,7 @@ class Driver:
   distance_cm -> int?:
     reading := read_
     if reading: return reading / CM_CONVERSION_FACTOR
-    
+
     return null
 
   /**
@@ -55,12 +55,12 @@ class Driver:
   distance_mm -> int?:
     reading := read_
     if reading: return (reading * 10) / CM_CONVERSION_FACTOR
-    
+
     return null
 
 
   read_ -> int?:
-    received_signals := rmt.transfer_and_receive --rx=echo_ --tx=trigger_ rmt_signals_ 8
+    received_signals := rmt.transmit_and_receive --rx=echo_ --tx=trigger_ --receive=rmt_signals_ 8
     if received_signals.size == 0 or (received_signals.signal_level 0) == 0: return null
 
     return received_signals.signal_period 0
