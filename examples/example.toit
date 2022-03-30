@@ -1,12 +1,17 @@
 import gpio
-import hs_sr04
+import rmt
+import hc_sr04
 
 main:
-  driver := hs_sr04.Driver
-      --echo=gpio.Pin.in 16
-      --trigger=gpio.Pin.out 17
+  echo := rmt.Channel
+    gpio.Pin.in 19
+    0
+  trigger := rmt.Channel
+    gpio.Pin.out 18
+    1
 
-  driver.start
+  driver := hc_sr04.Driver --echo=echo --trigger=trigger
+
   while true:
     print "The distance is: $driver.distance_cm cm"
     sleep --ms=2_000
