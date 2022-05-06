@@ -88,11 +88,10 @@ class Driver:
 
 
   read_ -> int?:
-    received_signals := rmt.write_and_read 8
-        --in_channel=echo_
-        --out_channel=trigger_
-        --during_read=rmt_signals_
-        --timeout_ms=500  // Give rmt some time to get the values.
+    echo_.start_reading
+    trigger_.write rmt_signals_
+    received_signals := echo_.read
+    echo_.stop_reading
 
     if received_signals.size == 0 or (received_signals.level 0) == 0: return null
     return received_signals.period 0
