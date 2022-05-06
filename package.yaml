@@ -1,1 +1,5 @@
 # Toit Package File.
+name: hc_sr04
+description: Driver for the HC-SR04 ultrasonic ranging module.
+environment:
+  sdk: ^2.0.0-alpha.1
