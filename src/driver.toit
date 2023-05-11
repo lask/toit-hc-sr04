@@ -88,13 +88,16 @@ class Driver:
 
 
   read_ -> int?:
-    echo_.start_reading
-    trigger_.write rmt_signals_
-    received_signals := echo_.read
-    echo_.stop_reading
+    catch --unwind=(: it != DEADLINE_EXCEEDED_ERROR):
+      with_timeout --ms=100:
+        echo_.start_reading
+        trigger_.write rmt_signals_
+        received_signals := echo_.read
+        echo_.stop_reading
 
-    if received_signals.size == 0 or (received_signals.level 0) == 0: return null
-    return received_signals.period 0
+        if received_signals.size == 0 or (received_signals.level 0) == 0: return null
+        return received_signals.period 0
+    return MAX_RANGE
 
   close:
     echo_.close
