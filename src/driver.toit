@@ -15,31 +15,24 @@ class Driver:
   If we judiciously use 233 as divider, then each tick is equivalent to 1 / 2.9125 microseconds.
   Each tick thus represents 1mm of travel distance.
   */
-  static MM-CLK-DIV_ ::= 233
+  static RESOLUTION-IN_ ::= 80_000_000 / 233
 
   /**
-  The maximum distance in millimeters.
-
-  The sensor stops waiting for a response shortly after ~70ms. This allows a round
-    trip of slightly more than ~12 meters.
-
-  Officially, only 4 meters are supported.
-
-  Any value above the max range is unreliable and could mean that the sensor
-    didn't receive any echo.
+  Deprecated. Different modules have different ranges.
   */
   static MAX-RANGE ::= 12_000
 
   /**
   The idle threshold must allow the max range.
-  Since each tick represents 1mm, we can simply multiply the $MAX-RANGE.
-  We need to take into account the round-trip and give some extra time.
-  However, we also must ensure that the value fits into 15 bits (32767).
-  */
-  static IDLE-THRESHOLD_ ::= MAX-RANGE * 2 + 2000
 
-  echo_ /rmt.Channel
-  trigger_ /rmt.Channel
+  We need to take into account the round-trip and give some extra time.
+  However, we also must ensure that the value is small enough for the RMT
+  counters. That value is less than 15 bits (but apparently not exactly 15 bits).
+  */
+  static IDLE-THRESHOLD-NS_ ::= 25_000 * 1_000_000_000 / RESOLUTION-IN_
+
+  echo_ /rmt.In
+  trigger_ /rmt.Out
 
   /** A simple pulse to trigger the sensor. */
   rmt-signals_ /rmt.Signals
@@ -53,11 +46,8 @@ class Driver:
   It uses two RMT channels.
   */
   constructor --echo/gpio.Pin --trigger/gpio.Pin:
-    trigger_ = rmt.Channel trigger --output --idle-level=0
-    echo_ = rmt.Channel echo --input
-        --idle-threshold=IDLE-THRESHOLD_
-        --filter-ticks-threshold=10
-        --clk-div=MM-CLK-DIV_
+    trigger_ = rmt.Out trigger --resolution=1_000_000
+    echo_ = rmt.In echo --resolution=(80_000_000 / 233)
 
     rmt-signals_ = rmt.Signals 1
     // Signal the HC-SR04 with a 10 us pulse.
@@ -66,11 +56,7 @@ class Driver:
   /**
   Reads the distance in mm.
 
-  Returns null if the read value is invalid.
-
-  Note that any value above $MAX-RANGE is unreliable and probably means that the
-    sensor didn't receive any echo. This could either mean that the distance was
-    greater than $MAX-RANGE, or that the sound wave was absorbed.
+  Returns null if the read value is invalid or no echo was received.
 
   # Advanced
   The HS-SR04 has an accuracy of 3mm.
@@ -89,15 +75,17 @@ class Driver:
 
   read_ -> int?:
     catch --unwind=(: it != DEADLINE-EXCEEDED-ERROR):
-      with-timeout --ms=100:
-        echo_.start-reading
-        trigger_.write rmt-signals_
-        received-signals := echo_.read
-        echo_.stop-reading
+      with-timeout --ms=200:
+        try:
+          echo_.start-reading --min-ns=100 --max-ns=IDLE-THRESHOLD-NS_
+          trigger_.write rmt-signals_
+          received-signals := echo_.wait-for-data
 
-        if received-signals.size == 0 or (received-signals.level 0) == 0: return null
-        return received-signals.period 0
-    return MAX-RANGE
+          if received-signals.size == 0 or (received-signals.level 0) == 0: return null
+          return received-signals.period 0
+        finally:
+          if echo_.is-reading: echo_.reset
+    return null
 
   close:
     echo_.close
