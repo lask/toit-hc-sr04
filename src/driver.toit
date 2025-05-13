@@ -15,7 +15,7 @@ class Driver:
   If we judiciously use 233 as divider, then each tick is equivalent to 1 / 2.9125 microseconds.
   Each tick thus represents 1mm of travel distance.
   */
-  static MM_CLK_DIV_ ::= 233
+  static MM-CLK-DIV_ ::= 233
 
   /**
   The maximum distance in millimeters.
@@ -28,21 +28,21 @@ class Driver:
   Any value above the max range is unreliable and could mean that the sensor
     didn't receive any echo.
   */
-  static MAX_RANGE ::= 12_000
+  static MAX-RANGE ::= 12_000
 
   /**
   The idle threshold must allow the max range.
-  Since each tick represents 1mm, we can simply multiply the $MAX_RANGE.
+  Since each tick represents 1mm, we can simply multiply the $MAX-RANGE.
   We need to take into account the round-trip and give some extra time.
   However, we also must ensure that the value fits into 15 bits (32767).
   */
-  static IDLE_THRESHOLD_ ::= MAX_RANGE * 2 + 2000
+  static IDLE-THRESHOLD_ ::= MAX-RANGE * 2 + 2000
 
   echo_ /rmt.Channel
   trigger_ /rmt.Channel
 
   /** A simple pulse to trigger the sensor. */
-  rmt_signals_ /rmt.Signals
+  rmt-signals_ /rmt.Signals
 
   /**
   Constructs a HC-SR04 driver.
@@ -53,29 +53,29 @@ class Driver:
   It uses two RMT channels.
   */
   constructor --echo/gpio.Pin --trigger/gpio.Pin:
-    trigger_ = rmt.Channel trigger --output --idle_level=0
+    trigger_ = rmt.Channel trigger --output --idle-level=0
     echo_ = rmt.Channel echo --input
-        --idle_threshold=IDLE_THRESHOLD_
-        --filter_ticks_threshold=10
-        --clk_div=MM_CLK_DIV_
+        --idle-threshold=IDLE-THRESHOLD_
+        --filter-ticks-threshold=10
+        --clk-div=MM-CLK-DIV_
 
-    rmt_signals_ = rmt.Signals 1
+    rmt-signals_ = rmt.Signals 1
     // Signal the HC-SR04 with a 10 us pulse.
-    rmt_signals_.set 0 --period=10 --level=1
+    rmt-signals_.set 0 --period=10 --level=1
 
   /**
   Reads the distance in mm.
 
   Returns null if the read value is invalid.
 
-  Note that any value above $MAX_RANGE is unreliable and probably means that the
+  Note that any value above $MAX-RANGE is unreliable and probably means that the
     sensor didn't receive any echo. This could either mean that the distance was
-    greater than $MAX_RANGE, or that the sound wave was absorbed.
+    greater than $MAX-RANGE, or that the sound wave was absorbed.
 
   # Advanced
   The HS-SR04 has an accuracy of 3mm.
   */
-  read_distance -> int?:
+  read-distance -> int?:
     reading := read_
 
     // We have set the clock divider in such a way that each tick is equivalent to
@@ -88,16 +88,16 @@ class Driver:
 
 
   read_ -> int?:
-    catch --unwind=(: it != DEADLINE_EXCEEDED_ERROR):
-      with_timeout --ms=100:
-        echo_.start_reading
-        trigger_.write rmt_signals_
-        received_signals := echo_.read
-        echo_.stop_reading
+    catch --unwind=(: it != DEADLINE-EXCEEDED-ERROR):
+      with-timeout --ms=100:
+        echo_.start-reading
+        trigger_.write rmt-signals_
+        received-signals := echo_.read
+        echo_.stop-reading
 
-        if received_signals.size == 0 or (received_signals.level 0) == 0: return null
-        return received_signals.period 0
-    return MAX_RANGE
+        if received-signals.size == 0 or (received-signals.level 0) == 0: return null
+        return received-signals.period 0
+    return MAX-RANGE
 
   close:
     echo_.close
