@@ -29,7 +29,7 @@ class Driver:
   However, we also must ensure that the value is small enough for the RMT
   counters. That value is less than 15 bits (but apparently not exactly 15 bits).
   */
-  static IDLE-THRESHOLD-NS_ ::= 25000 * 1_000_000_000 / RESOLUTION-IN_
+  static IDLE-THRESHOLD-NS_ ::= 25_000 * 1_000_000_000 / RESOLUTION-IN_
 
   echo_ /rmt.In
   trigger_ /rmt.Out
@@ -80,7 +80,6 @@ class Driver:
           echo_.start-reading --min-ns=100 --max-ns=IDLE-THRESHOLD-NS_
           trigger_.write rmt-signals_
           received-signals := echo_.wait-for-data
-          print received-signals
 
           if received-signals.size == 0 or (received-signals.level 0) == 0: return null
           return received-signals.period 0
