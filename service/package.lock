@@ -1,0 +1,5 @@
+prefixes:
+  hc-sr04: ..
+packages:
+  ..:
+    path: ..

@@ -1,5 +1,9 @@
-# Toit Package File.
 name: hc-sr04
-description: Driver for the HC-SR04 ultrasonic ranging module, an ultrasound distance sensor.
+description: Driver for the HC-SR04 ultrasonic ranging module, an ultrasound distance
+  sensor.
 environment:
   sdk: ^2.0.0-alpha.180
+dependencies:
+  sensors:
+    url: github.com/toitware/toit-sensors
+    version: ^0.0.1

@@ -1,0 +1,3 @@
+dependencies:
+  hc-sr04:
+    path: ..
