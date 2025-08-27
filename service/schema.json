@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-2020-12/schema",
+  "$id": "https://github.com/toitware/toit-hc-sr04/service/schema.json",
+  "title": "HC-SR04 Configuration",
+  "description": "Configuration for the HC-SR04 distance sensor.",
+  "type": "object",
+  "required": [
+    "trigger",
+    "echo"
+  ],
+  "properties": {
+    "trigger": {
+      "type": "integer",
+      "description": "The GPIO pin number of the trigger pin."
+    },
+    "echo": {
+      "type": "integer",
+      "description": "The GPIO pin number of the echo pin."
+    }
+  }
+}
