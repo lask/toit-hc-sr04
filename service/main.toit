@@ -16,10 +16,10 @@ install-from-args_ args/List:
 install-from-assets_ configuration/Map:
   trigger := configuration.get "trigger"
   if not trigger: throw "No 'trigger' found in assets."
-  if trigger is not int: throw "Trigger must be an integer."
+  if trigger is not int: throw "The 'trigger' parameter must be an integer."
   echo := configuration.get "echo"
   if not echo: throw "No 'echo' found in assets."
-  if echo is not int: throw "Echo must be an integer."
+  if echo is not int: throw "The 'echo' parameter must be an integer."
   provider.install --trigger=trigger --echo=echo
 
 main args:
