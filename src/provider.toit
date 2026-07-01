@@ -2,7 +2,6 @@
 // Use of this source code is governed by an MIT-style license that can be found
 // in the LICENSE file.
 
-import gpio
 import i2c
 import sensors.providers
 
@@ -13,22 +12,10 @@ MAJOR ::= 1
 MINOR ::= 0
 
 class Sensor_ implements providers.DistanceSensor-v1:
-  trigger_/gpio.Pin? := null
-  echo_/gpio.Pin? := null
   sensor_/hc-sr04.Driver? := null
 
   constructor --trigger/int --echo/int:
-    is-exception := true
-    try:
-      trigger_ = gpio.Pin trigger
-      echo_ = gpio.Pin echo
-      sensor_ = hc-sr04.Driver --trigger=trigger_ --echo=echo_
-      is-exception = false
-    finally:
-      if is-exception:
-        if sensor_: sensor_.close
-        if trigger_: trigger_.close
-        if echo_: echo_.close
+    sensor_ = hc-sr04.Driver --trigger=trigger --echo=echo
 
   distance-read -> int?:
     return sensor_.read-distance
@@ -37,12 +24,6 @@ class Sensor_ implements providers.DistanceSensor-v1:
     if sensor_:
       sensor_.close
       sensor_ = null
-    if trigger_:
-      trigger_.close
-      trigger_ = null
-    if echo_:
-      echo_.close
-      echo_ = null
 
 /**
 Installs the HC-SR04 sensor.
