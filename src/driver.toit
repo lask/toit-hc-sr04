@@ -44,8 +44,15 @@ class Driver:
     $trigger pin for output.
 
   It uses two RMT channels.
+
+  The pins are GPIO numbers. Passing a $gpio.Pin is deprecated; provide the integer
+    GPIO number instead.
   */
-  constructor --echo/gpio.Pin --trigger/gpio.Pin:
+  // __TYPE-MIGRATION__ echo: gpio.Pin. Deprecated. Provide an integer instead.
+  // __TYPE-MIGRATION__ echo: int
+  // __TYPE-MIGRATION__ trigger: gpio.Pin. Deprecated. Provide an integer instead.
+  // __TYPE-MIGRATION__ trigger: int
+  constructor --echo/any --trigger/any:
     trigger_ = rmt.Out trigger --resolution=1_000_000
     echo_ = rmt.In echo --resolution=(80_000_000 / 233)
 
